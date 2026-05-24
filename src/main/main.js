@@ -1,5 +1,18 @@
 //src/main/main.js
-import { app, BrowserWindow, ipcMain } from 'electron';
+// import { app, BrowserWindow, ipcMain } from 'electron';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+// import { initDatabase } from './db.js';
+// import db from './db.js';
+
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// const isDev = !app.isPackaged;
+// const { ipcMain, dialog, app } = require('electron');
+// const fs = require('fs');
+// const path = require('path');
+
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'; // Añadimos dialog aquí
+import fs from 'fs'; // Importamos fs con sintaxis moderna
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { initDatabase } from './db.js';
@@ -146,7 +159,7 @@ ipcMain.handle('db:addToWishlist', (event, item) => {
   );
 });
 
-// Añadimos Editar para la Wishlist (importante para actualizar precios)
+// Editar para la Wishlist (importante para actualizar precios)
 ipcMain.handle('db:updateWishlist', (event, item) => {
   const update = db.prepare(`
       UPDATE wishlist 
@@ -170,8 +183,39 @@ ipcMain.handle('db:updateWishlist', (event, item) => {
     );
 });
 
-// Añadimos Eliminar para la Wishlist
+// Eliminar para la Wishlist
 ipcMain.handle('db:deleteWishlist', (event, id) => {
   return db.prepare('DELETE FROM wishlist WHERE id = ?').run(id);
 });
 
+// exportar base de datos
+ipcMain.handle('export-database', async (event) => {
+  try {
+    // 1. Ruta de la base de datos original (ajusta el nombre si es distinto)
+    const sourcePath = path.join(app.getPath('userData'), 'albumcollection.db');
+
+    // 2. Abrir la ventana de Windows de "Guardar como..."
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Exportar Copia de Seguridad',
+      defaultPath: 'musicstats_backup.db',
+      buttonLabel: 'Exportar',
+      filters: [
+        { name: 'Base de Datos SQLite', extensions: ['db', 'sqlite'] },
+        { name: 'Todos los Archivos', extensions: ['*'] }
+      ]
+    });
+
+    // Si el usuario cierra la ventana o le da a cancelar
+    if (canceled) {
+      return { success: false, canceled: true };
+    }
+
+    // 3. Copiar el archivo de la carpeta oculta a la ruta elegida por el usuario
+    fs.copyFileSync(sourcePath, filePath);
+    
+    return { success: true, path: filePath };
+  } catch (error) {
+    console.error('Error al exportar la base de datos:', error);
+    return { success: false, error: error.message };
+  }
+});

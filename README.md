@@ -4,6 +4,11 @@ Es una aplicación de escritorio diseñada para coleccionistas de música en for
 ## El Problema que Resuelve
 Para un coleccionista, es difícil llevar el control del tiempo total de escucha de su biblioteca y, sobre todo, saber cuándo un disco de su lista de deseos está en una buena oferta. MusicStats centraliza la base de datos de la colección y automatiza el cálculo del precio promedio histórico, indicando mediante tendencias si el precio actual de un álbum ha subido o bajado respecto a los registros anteriores.
 
+### Actualización 1.1.0
+- Se añade buscador en la pantalla de estadisticas (StatsView.vue).
+- Se añade opción de filtrado rapido en los encabezados de la tabla de estadisticas (StatsView.vue).
+- Opción para exportar base de datos y guardarla localmente (StatsView.vue, preload.cjs, main.js (electron))
+
 ## Tecnologías Usadas
 - Core: Electron (Framework para apps de escritorio)
 - Frontend: Vue.js 3 (Composition API)
