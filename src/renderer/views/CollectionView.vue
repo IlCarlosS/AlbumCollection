@@ -1,15 +1,25 @@
 <!-- src/renderer/views/CollectionView.vue -->
 <template>
   <div class="space-y-6">
-    <div class="flex justify-between items-start">
-      <div>
+    <div class="flex justify-between items-end mb-6">
+      <div class="flex-1">
         <h2 class="text-2xl font-bold text-accent">Mi Colección</h2>
-        <p class="text-text-dim text-sm">Tienes {{ store.albums.length }} discos en tu biblioteca.</p>
+        <p class="text-text-dim text-sm mb-4">Tienes {{ store.albums.length }} discos en tu biblioteca.</p>
+        
+        <div class="w-full max-w-md">
+          <input 
+            type="text" 
+            v-model="searchQuery"
+            placeholder="Buscar por artista o título..." 
+            class="w-full bg-black/40 border border-dark-border text-softWhite rounded p-2 outline-none focus:border-accent transition-colors text-sm"
+          >
+        </div>
       </div>
+      
       <button 
         v-if="!showForm"
         @click="openCreateForm"
-        class="bg-accent text-dark-bg px-4 py-2 rounded font-bold hover:bg-accent-hover transition-all flex items-center gap-2"
+        class="bg-accent text-dark-bg px-4 py-2 rounded font-bold hover:bg-accent-hover transition-all flex items-center gap-2 h-fit"
       >
         <span>+</span> Añadir Álbum
       </button>
@@ -58,16 +68,51 @@
     <div class="bg-dark-surface rounded-lg border border-dark-border overflow-hidden text-sm">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="bg-black/20 text-text-dim text-xs uppercase">
-            <th class="px-4 py-3 border-b border-dark-border">Artista</th>
-            <th class="px-4 py-3 border-b border-dark-border">Título</th>
-            <th class="px-4 py-3 border-b border-dark-border">Formato</th>
-            <th class="px-4 py-3 border-b border-dark-border">Duración</th>
-            <th class="px-4 py-3 border-b border-dark-border text-right">Acciones</th>
+          <tr class="bg-black/20 text-text-dim text-xs uppercase cursor-pointer select-none">
+            
+            <th @click="toggleSort('artist')" class="px-4 py-3 border-b border-dark-border hover:text-softWhite transition-colors group">
+              <div class="flex items-center gap-1">
+                <span>Artista</span>
+                <span class="text-[10px]" :class="sortKey === 'artist' ? 'text-accent' : 'text-text-dim/30 group-hover:text-accent/50'">
+                  {{ sortKey === 'artist' ? (sortAsc ? '▲' : '▼') : '▲▼' }}
+                </span>
+              </div>
+            </th>
+
+            <th @click="toggleSort('title')" class="px-4 py-3 border-b border-dark-border hover:text-softWhite transition-colors group">
+              <div class="flex items-center gap-1">
+                <span>Título</span>
+                <span class="text-[10px]" :class="sortKey === 'title' ? 'text-accent' : 'text-text-dim/30 group-hover:text-accent/50'">
+                  {{ sortKey === 'title' ? (sortAsc ? '▲' : '▼') : '▲▼' }}
+                </span>
+              </div>
+            </th>
+
+            <th @click="toggleSort('format')" class="px-4 py-3 border-b border-dark-border hover:text-softWhite transition-colors group">
+              <div class="flex items-center gap-1">
+                <span>Formato</span>
+                <span class="text-[10px]" :class="sortKey === 'format' ? 'text-accent' : 'text-text-dim/30 group-hover:text-accent/50'">
+                  {{ sortKey === 'format' ? (sortAsc ? '▲' : '▼') : '▲▼' }}
+                </span>
+              </div>
+            </th>
+
+            <th @click="toggleSort('minutes')" class="px-4 py-3 border-b border-dark-border hover:text-softWhite transition-colors group">
+              <div class="flex items-center gap-1">
+                <span>Duración</span>
+                <span class="text-[10px]" :class="sortKey === 'minutes' ? 'text-accent' : 'text-text-dim/30 group-hover:text-accent/50'">
+                  {{ sortKey === 'minutes' ? (sortAsc ? '▲' : '▼') : '▲▼' }}
+                </span>
+              </div>
+            </th>
+
+            <th class="px-4 py-3 border-b border-dark-border text-right cursor-default">Acciones</th>
+            
           </tr>
         </thead>
+        
         <tbody class="divide-y divide-dark-border">
-          <tr v-for="album in store.albums" :key="album.id" class="hover:bg-white/5 transition-colors group">
+          <tr v-for="album in processedAlbums" :key="album.id" class="hover:bg-white/5 transition-colors group">
             <td class="px-4 py-4 font-semibold text-softWhite">{{ album.artist }}</td>
             <td class="px-4 py-4 italic text-text-dim">{{ album.title }}</td>
             <td class="px-4 py-4">
@@ -80,7 +125,6 @@
               <button @click="prepareEdit(album)" class="hover:text-accent transition-colors">✏️</button>
               <button @click="handleDelete(album.id)" class="hover:text-red-500 transition-colors">🗑️</button>
             </td>
-            
           </tr>
         </tbody>
       </table>
@@ -93,12 +137,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useAlbumStore } from '../stores/albumStore.js';
 
 const store = useAlbumStore();
 const showForm = ref(false);
 const editingId = ref(null);
+
+const searchQuery = ref('');
+const sortKey = ref('artist'); // Columna por defecto al cargar
+const sortAsc = ref(true);     // Orden ascendente (A-Z) por defecto
 
 const form = reactive({
   artist: '',
@@ -146,6 +194,48 @@ const handleDelete = async (id) => {
     await store.fetchAllData();
   }
 };
+
+const toggleSort = (key) => {
+  if (sortKey.value === key) {
+    // Si haces clic en la misma columna, simplemente invierte el orden (A-Z a Z-A)
+    sortAsc.value = !sortAsc.value;
+  } else {
+    // Si haces clic en una columna nueva, cambia la clave y ponlo en A-Z
+    sortKey.value = key;
+    sortAsc.value = true;
+  }
+};
+
+// 3.  La propiedad computada (processedAlbums) Vue actualizará la tabla automáticamente cada vez que escribas en el buscador
+// o hagas clic en una flecha, sin modificar la base de datos original.
+const processedAlbums = computed(() => {
+  let result = store.albums;
+  // A) Aplicar el Buscador
+  if (searchQuery.value.trim() !== '') {
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter(album => 
+      album.artist.toLowerCase().includes(query) || 
+      album.title.toLowerCase().includes(query)
+    );
+  }
+  // B) Aplicar el Ordenamiento
+  // Usamos [...result] para crear una copia del array y no mutar el original
+  result = [...result].sort((a, b) => {
+    let valA = a[sortKey.value];
+    let valB = b[sortKey.value];
+
+    // Para evitar errores al comparar strings con mayúsculas/minúsculas
+    if (typeof valA === 'string') valA = valA.toLowerCase();
+    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+    // Lógica mágica de ordenamiento (Ascendente vs Descendente)
+    if (valA < valB) return sortAsc.value ? -1 : 1;
+    if (valA > valB) return sortAsc.value ? 1 : -1;
+    return 0; // Son iguales
+  });
+
+  return result;
+});
 </script>
 
 <style scoped>

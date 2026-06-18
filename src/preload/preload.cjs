@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('api', {
   updateWishlist: (item) => ipcRenderer.invoke('db:updateWishlist', item),
   deleteWishlist: (id) => ipcRenderer.invoke('db:deleteWishlist', id),
 
-  // Función para exportar
-  exportDatabase: () => ipcRenderer.invoke('export-database')
+  // Función para exportar e importar
+  exportDatabase: () => ipcRenderer.invoke('export-database'),
+  importDatabase: () => ipcRenderer.invoke('import-database')
 });

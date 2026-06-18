@@ -26,6 +26,7 @@ function createWindow() {
   width: 1100,
   height: 800,
   icon: path.join(__dirname, '../../resources/icon.ico'),
+  autoHideMenuBar: true, //ocultar barra menu
   webPreferences: {
     // Usamos path.resolve para asegurar que la ruta sea absoluta y correcta
     preload: path.join(__dirname, '../preload/preload.cjs'),
@@ -216,6 +217,39 @@ ipcMain.handle('export-database', async (event) => {
     return { success: true, path: filePath };
   } catch (error) {
     console.error('Error al exportar la base de datos:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// importar base de datos
+ipcMain.handle('import-database', async (event) => {
+  try {
+    // 1. Abrimos la ventana de Windows para seleccionar un archivo
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: 'Importar Base de Datos',
+      buttonLabel: 'Importar y Sobrescribir',
+      properties: ['openFile'],
+      filters: [
+        { name: 'Base de Datos SQLite', extensions: ['db', 'sqlite'] },
+        { name: 'Todos los Archivos', extensions: ['*'] }
+      ]
+    });
+
+    // Si el usuario cierra la ventana o cancela
+    if (canceled || filePaths.length === 0) {
+      return { success: false, canceled: true };
+    }
+
+    // 2. Rutas de origen (el archivo elegido) y destino (la app interna)
+    const sourcePath = filePaths[0];
+    const destPath = path.join(app.getPath('userData'), 'albumcollection.db');
+
+    // 3. Sobrescribimos el archivo interno con el importado
+    fs.copyFileSync(sourcePath, destPath);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error al importar la base de datos:', error);
     return { success: false, error: error.message };
   }
 });

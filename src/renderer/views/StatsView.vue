@@ -3,7 +3,6 @@
   <div class="space-y-8">
     <div class="flex justify-between items-center">
       <h2 class="text-2xl font-bold text-accent">Estadísticas de Reproducción</h2>
-      
       <div class="flex items-center gap-4">
         <button @click="store.fetchAllData()" class="text-text-dim hover:text-accent transition-colors text-sm">
           Refrescar datos 🔄
@@ -16,7 +15,8 @@
         >
           <option value="" disabled>Gestión de Datos...</option>
           <option value="export">Exportar Base de Datos</option>
-          </select>
+          <option value="import">Importar Base de Datos</option>
+        </select>
       </div>
     </div>
 
@@ -220,6 +220,22 @@ const handleDataAction = async () => {
       }
     } catch (err) {
       console.error("Error ejecutando la exportación:", err);
+    }
+  }
+  else if (dataAction.value === 'import') {
+    // NUEVA LÓGICA DE IMPORTACIÓN
+    try {
+      const result = await window.api.importDatabase();
+      
+      if (result.success) {
+        alert('Base de datos importada con éxito. Actualizando vista...');
+        // Refrescamos los datos en el store para ver los cambios de inmediato
+        await store.fetchAllData(); 
+      } else if (!result.canceled) {
+        alert('Ocurrió un error al importar:\n' + result.error);
+      }
+    } catch (err) {
+      console.error("Error ejecutando la importación:", err);
     }
   }
   

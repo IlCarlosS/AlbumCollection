@@ -1,6 +1,7 @@
 {
   "name": "album-collection",
-  "version": "1.1.0",
+  "author": "Carlos Solis",
+  "version": "1.1.2",
   "main": "src/main/main.js",
   "type": "module",
   "scripts": {
@@ -29,10 +30,18 @@
   },
   "build": {
     "appId": "com.cs.albumcollection",
-    "productName": "Album Collecton",
+    "productName": "Album Collection: MusicStats",
+    "asar": true,
     "directories": {
       "output": "dist_electron"
     },
+    "files": [
+      "dist/**/*",
+      "src/main/**/*",
+      "src/preload/**/*",
+      "resources/**/*",
+      "package.json"
+    ],
     "win": {
       "icon": "resources/icon.ico",
       "target": [
@@ -42,7 +51,7 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "AlbumCollection"
+      "shortcutName": "MusicStats"
     }
   }
 }

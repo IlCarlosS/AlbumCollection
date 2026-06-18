@@ -4,6 +4,14 @@ Es una aplicación de escritorio diseñada para coleccionistas de música en for
 ## El Problema que Resuelve
 Para un coleccionista, es difícil llevar el control del tiempo total de escucha de su biblioteca y, sobre todo, saber cuándo un disco de su lista de deseos está en una buena oferta. MusicStats centraliza la base de datos de la colección y automatiza el cálculo del precio promedio histórico, indicando mediante tendencias si el precio actual de un álbum ha subido o bajado respecto a los registros anteriores.
 
+### Actualización 1.2.0
+- Se añade buscador en la pantalla de colección (CollectionView.vue).
+- Se añade opción de filtrado rápido en los encabezados de la tabla de colección (CollectionView.vue).
+- Opción para importar base de datos (CollectionView.vue, preload.cjs, main.js (electron)).
+- Corrección de icono, ahora mide 256x256px evitando resolviendos problemas al construir ejecutable e instalador
+- Se oculta la cinta/menú de opciones de la ventana de electron, mejorando la UI (main.js (electron)).
+- Ahora al ejecutar el comando npm run build se crea el la carpeta con ejecutable win-unpacked asi como el instalador para Windows (10 y 11) Album Collection MusicStats Setup 1.1.2.exe
+
 ### Actualización 1.1.0
 - Se añade buscador en la pantalla de estadisticas (StatsView.vue).
 - Se añade opción de filtrado rapido en los encabezados de la tabla de estadisticas (StatsView.vue).
@@ -73,7 +81,7 @@ Una vez completado en otra consola:
 ```
 npm start
 ```
-- Construir ejecutable: 
+- Construir ejecutable e instalador: 
 ``` 
 npm run build
 ```

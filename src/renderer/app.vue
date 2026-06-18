@@ -19,7 +19,7 @@
       </div>
       
       <div class="flex-1 text-right pb-2 pr-2 text-xs text-text-dim italic">
-        AlbumCollection v1.0
+        AlbumCollection v1.1.2
       </div>
     </header>
 
